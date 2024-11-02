@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LidomNet.Data.Migrations
 {
     [DbContext(typeof(LidomNetDbContext))]
-    [Migration("20241024015315_Adding Identity to the Api")]
-    partial class AddingIdentitytotheApi
+    [Migration("20241101023633_Refresh Token added")]
+    partial class RefreshTokenadded
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,16 +31,18 @@ namespace LidomNet.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("AnioFuncadion")
+                    b.Property<DateTime>("AnioFundacion")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("Campeonatos")
                         .HasColumnType("int");
 
                     b.Property<string>("Ciudad")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Nombre")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -60,7 +62,7 @@ namespace LidomNet.Data.Migrations
                     b.Property<string>("Ciudad")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid?>("EquipoId")
+                    b.Property<Guid>("EquipoId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Nombre")
@@ -83,9 +85,11 @@ namespace LidomNet.Data.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Posicion")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -97,16 +101,20 @@ namespace LidomNet.Data.Migrations
 
             modelBuilder.Entity("LidomNet.Domain.Partido", b =>
                 {
-                    b.Property<Guid?>("EquipoLocalId")
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("EquipoVisitanteId")
+                    b.Property<Guid>("EquipoLocalId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid?>("EstadioId")
+                    b.Property<Guid>("EquipoVisitanteId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("Fecha")
+                    b.Property<Guid>("EstadioId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("Fecha")
                         .HasColumnType("datetime2");
 
                     b.Property<int>("MarcadorLocal")
@@ -115,13 +123,52 @@ namespace LidomNet.Data.Migrations
                     b.Property<int>("MarcadorVisitante")
                         .HasColumnType("int");
 
-                    b.HasKey("EquipoLocalId", "EquipoVisitanteId", "EstadioId");
+                    b.HasKey("Id");
+
+                    b.HasIndex("EquipoLocalId");
 
                     b.HasIndex("EquipoVisitanteId");
 
                     b.HasIndex("EstadioId");
 
                     b.ToTable("Partidos");
+                });
+
+            modelBuilder.Entity("LidomNet.Domain.RefreshToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("AddedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiryDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("JwtId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RefreshTokens");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -269,10 +316,12 @@ namespace LidomNet.Data.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -309,10 +358,12 @@ namespace LidomNet.Data.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -327,7 +378,8 @@ namespace LidomNet.Data.Migrations
                     b.HasOne("LidomNet.Domain.Equipo", "Equipo")
                         .WithMany()
                         .HasForeignKey("EquipoId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("Equipo");
                 });

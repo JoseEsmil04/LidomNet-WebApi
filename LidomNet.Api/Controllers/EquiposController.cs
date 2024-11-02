@@ -31,50 +31,47 @@ namespace LidomNet.Api.Controllers
         [HttpGet("getOne/{name}")]
         public async Task<IActionResult> GetTeam([FromQuery] string name)
         {
-            var team = await _context.Equipos.FirstOrDefaultAsync(e => e.Nombre == name);
+            var equipo = await _context.Equipos.FirstOrDefaultAsync(e => e.Nombre == name);
 
-            if(team == null)
+            equipo.Jugadores = await _context.Jugadores.ToListAsync()!;
+
+            if(equipo == null)
             {
                 return NotFound();
             }
 
-            return Ok(team);
+            return Ok(equipo);
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> CreateTeam(Equipo equipo)
+        public async Task<IActionResult> CreateTeam([FromBody] Equipo equipo)
         {
-            var newTeam = await _context.Equipos.AddAsync(equipo);
+            _context.Equipos.Add(equipo);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetTeam), new { name = equipo.Nombre }, equipo);
+            return Created();
         }
 
         [HttpPut("update/{name}")]
         public async Task<IActionResult> UpdateTeam(string name, [FromBody] Equipo equipo)
         {
-            // Verifica que el ID del equipo en la URL coincida con el ID del equipo en el cuerpo de la solicitud
             if (name != equipo.Nombre)
             {
                 return BadRequest("El ID del equipo no coincide");
             }
 
-            // Busca el equipo en la base de datos
             var existingTeam = await _context.Equipos.FindAsync(name);
             if (existingTeam == null)
             {
                 return NotFound("Equipo no encontrado");
             }
 
-            // Actualiza las propiedades del equipo
             existingTeam.Nombre = equipo.Nombre;
             existingTeam.Ciudad = equipo.Ciudad;
-            // Actualiza las demás propiedades que necesites
 
-            // Guarda los cambios
             await _context.SaveChangesAsync();
 
-            return NoContent(); // 204 No Content, porque no devolvemos contenido, solo confirmamos que fue exitoso
+            return NoContent();
         }
 
 

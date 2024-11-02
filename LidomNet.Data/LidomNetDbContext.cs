@@ -6,7 +6,7 @@ namespace LidomNet.Data
 {
     public class LidomNetDbContext : IdentityDbContext
     {
-        public LidomNetDbContext(DbContextOptions options) : base(options)
+        public LidomNetDbContext(DbContextOptions<LidomNetDbContext> options) : base(options)
         {
         }
 
@@ -14,49 +14,42 @@ namespace LidomNet.Data
         public DbSet<Estadio> Estadios { get; set; }
         public DbSet<Jugador> Jugadores { get; set; }
         public DbSet<Partido> Partidos { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer();
             base.OnConfiguring(optionsBuilder);
-
-
         }
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            // Relación 1 a muchos: Equipo -> Jugadores
-            modelBuilder.Entity<Jugador>()
-                .HasOne(j => j.Equipo)
-                .WithMany(e => e.Jugadores)
+            modelBuilder.Entity<Equipo>()
+                .HasMany(e => e.Jugadores)
+                .WithOne(e => e.Equipo)
                 .HasForeignKey(j => j.EquipoId)
-                .OnDelete(DeleteBehavior.Cascade); // Si un equipo es eliminado, los jugadores también.
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Cascade);   
 
-            // Relación 1 a muchos: Estadio -> Equipos (si aplicara en tu caso)
+            // Estadio <-> Equipo
             modelBuilder.Entity<Estadio>()
                 .HasOne(e => e.Equipo)
-                .WithMany() // Un equipo tiene un estadio, pero no hay colección de estadios.
+                .WithMany()
                 .HasForeignKey(e => e.EquipoId)
-                .OnDelete(DeleteBehavior.SetNull); // Eliminar un equipo no elimina el estadio.
+                .OnDelete(DeleteBehavior.Cascade);
 
-            modelBuilder.Entity<Partido>()
-                .HasKey(p => new { p.EquipoLocalId, p.EquipoVisitanteId, p.EstadioId });
-
-            // Relación 1 a muchos: Partido -> Equipo (Local y Visitante)
+            // Configuración de relaciones para el Partido
             modelBuilder.Entity<Partido>()
                 .HasOne(p => p.EquipoLocal)
-                .WithMany(e => e.PartidosLocal) // Equipo puede tener varios partidos como local
+                .WithMany(e => e.PartidosLocal)
                 .HasForeignKey(p => p.EquipoLocalId)
-                .OnDelete(DeleteBehavior.Restrict); // No permite eliminar si tiene partidos.
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Partido>()
                 .HasOne(p => p.EquipoVisitante)
-                .WithMany(e => e.PartidosVisitante) // Equipo puede tener varios partidos como visitante
+                .WithMany(e => e.PartidosVisitante)
                 .HasForeignKey(p => p.EquipoVisitanteId)
-                .OnDelete(DeleteBehavior.Restrict); // No permite eliminar si tiene partidos.
+                .OnDelete(DeleteBehavior.Restrict);
         }
-
     }
 }

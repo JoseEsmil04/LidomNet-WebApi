@@ -1,5 +1,6 @@
 ﻿using LidomNet.Data;
 using LidomNet.Domain;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,6 +8,7 @@ namespace LidomNet.Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class JugadoresController : ControllerBase
     {
         private readonly LidomNetDbContext _context;
@@ -19,6 +21,7 @@ namespace LidomNet.Api.Controllers
             => await _context.Jugadores.FirstOrDefaultAsync(j => j.Name == name);
 
         [HttpGet("getAll")]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<Jugador>>> GetAll()
         {
             var jugadores = await _context.Jugadores.ToListAsync();
@@ -27,7 +30,7 @@ namespace LidomNet.Api.Controllers
         }
 
         [HttpGet("getOne/{name}")]
-        public async Task<IActionResult> GetOne(string name)
+        public async Task<IActionResult> GetPlayer(string name)
         {
             var jugador = await GetJugadorByNameAsync(name);
 
@@ -39,13 +42,23 @@ namespace LidomNet.Api.Controllers
             return Ok(jugador);
         }
 
-        [HttpPost("createOne")]
-        public async Task<IActionResult> Create(Jugador jugador)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreatePlayer([FromBody] Jugador jugador)
         {
-            var newJugador = await _context.Jugadores.AddAsync(jugador);
+            var equipo = await _context.Equipos.FindAsync(jugador.EquipoId);
+            if (equipo == null)
+            {
+                return BadRequest("El equipo asignado no existe.");
+            }
+
+            var existeJugador = await GetJugadorByNameAsync(jugador.Name);
+
+            if (existeJugador != null) return BadRequest(new { Error = "El jugador ya existe" });
+
+            _context.Jugadores.Add(jugador);
             await _context.SaveChangesAsync();
 
-            return Ok(newJugador);
+            return Ok();
         }
 
         [HttpPut("updateOne/{name}")]

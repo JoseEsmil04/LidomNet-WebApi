@@ -12,9 +12,10 @@ namespace LidomNet.Domain
         public string? Ciudad { get; set; }
         public int Capacidad { get; set; }
 
-        // Relación con Equipo
-        public Guid? EquipoId { get; set; }
-        public Equipo? Equipo { get; set; }
+        // Relación obligatoria con un equipo
+        public Guid EquipoId { get; set; }
+        public Equipo? Equipo { get; set; } = null!;
     }
+
 
 }

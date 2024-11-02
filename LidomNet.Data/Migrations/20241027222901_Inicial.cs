@@ -6,62 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LidomNet.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class AddingIdentitytotheApi : Migration
+    public partial class Inicial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Partidos_Estadios_EstadioId",
-                table: "Partidos");
-
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Partidos",
-                table: "Partidos");
-
-            migrationBuilder.DropIndex(
-                name: "IX_Partidos_EquipoLocalId",
-                table: "Partidos");
-
-            migrationBuilder.DropColumn(
-                name: "Id",
-                table: "Partidos");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EstadioId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EquipoVisitanteId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier",
-                oldNullable: true);
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EquipoLocalId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"),
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier",
-                oldNullable: true);
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Partidos",
-                table: "Partidos",
-                columns: new[] { "EquipoLocalId", "EquipoVisitanteId", "EstadioId" });
-
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -99,6 +48,21 @@ namespace LidomNet.Data.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_AspNetUsers", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Equipos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    AnioFundacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Campeonatos = table.Column<int>(type: "int", nullable: false),
+                    Ciudad = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Equipos", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -147,8 +111,8 @@ namespace LidomNet.Data.Migrations
                 name: "AspNetUserLogins",
                 columns: table => new
                 {
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProviderKey = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    ProviderKey = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     ProviderDisplayName = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -192,8 +156,8 @@ namespace LidomNet.Data.Migrations
                 columns: table => new
                 {
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    LoginProvider = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    LoginProvider = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(128)", maxLength: 128, nullable: false),
                     Value = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
@@ -203,6 +167,82 @@ namespace LidomNet.Data.Migrations
                         name: "FK_AspNetUserTokens_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Estadios",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Ciudad = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Capacidad = table.Column<int>(type: "int", nullable: false),
+                    EquipoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Estadios", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Estadios_Equipos_EquipoId",
+                        column: x => x.EquipoId,
+                        principalTable: "Equipos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Jugadores",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Posicion = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    EquipoId = table.Column<Guid>(type: "uniqueidentifier", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Jugadores", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Jugadores_Equipos_EquipoId",
+                        column: x => x.EquipoId,
+                        principalTable: "Equipos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Partidos",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    EquipoLocalId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EquipoVisitanteId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    EstadioId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    MarcadorLocal = table.Column<int>(type: "int", nullable: false),
+                    MarcadorVisitante = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Partidos", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Partidos_Equipos_EquipoLocalId",
+                        column: x => x.EquipoLocalId,
+                        principalTable: "Equipos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Partidos_Equipos_EquipoVisitanteId",
+                        column: x => x.EquipoVisitanteId,
+                        principalTable: "Equipos",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Partidos_Estadios_EstadioId",
+                        column: x => x.EstadioId,
+                        principalTable: "Estadios",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -246,22 +286,35 @@ namespace LidomNet.Data.Migrations
                 unique: true,
                 filter: "[NormalizedUserName] IS NOT NULL");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Partidos_Estadios_EstadioId",
+            migrationBuilder.CreateIndex(
+                name: "IX_Estadios_EquipoId",
+                table: "Estadios",
+                column: "EquipoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Jugadores_EquipoId",
+                table: "Jugadores",
+                column: "EquipoId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Partidos_EquipoLocalId",
                 table: "Partidos",
-                column: "EstadioId",
-                principalTable: "Estadios",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Cascade);
+                column: "EquipoLocalId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Partidos_EquipoVisitanteId",
+                table: "Partidos",
+                column: "EquipoVisitanteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Partidos_EstadioId",
+                table: "Partidos",
+                column: "EstadioId");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Partidos_Estadios_EstadioId",
-                table: "Partidos");
-
             migrationBuilder.DropTable(
                 name: "AspNetRoleClaims");
 
@@ -278,62 +331,22 @@ namespace LidomNet.Data.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
+                name: "Jugadores");
+
+            migrationBuilder.DropTable(
+                name: "Partidos");
+
+            migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
-            migrationBuilder.DropPrimaryKey(
-                name: "PK_Partidos",
-                table: "Partidos");
+            migrationBuilder.DropTable(
+                name: "Estadios");
 
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EstadioId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EquipoVisitanteId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
-
-            migrationBuilder.AlterColumn<Guid>(
-                name: "EquipoLocalId",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: true,
-                oldClrType: typeof(Guid),
-                oldType: "uniqueidentifier");
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "Id",
-                table: "Partidos",
-                type: "uniqueidentifier",
-                nullable: false,
-                defaultValue: new Guid("00000000-0000-0000-0000-000000000000"));
-
-            migrationBuilder.AddPrimaryKey(
-                name: "PK_Partidos",
-                table: "Partidos",
-                column: "Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Partidos_EquipoLocalId",
-                table: "Partidos",
-                column: "EquipoLocalId");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Partidos_Estadios_EstadioId",
-                table: "Partidos",
-                column: "EstadioId",
-                principalTable: "Estadios",
-                principalColumn: "Id");
+            migrationBuilder.DropTable(
+                name: "Equipos");
         }
     }
 }
